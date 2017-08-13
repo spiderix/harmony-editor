@@ -1,36 +1,92 @@
-<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,300,300italic,400italic,500,500italic,700,700italic"
+    crossorigin="anonymous">
 
+<link rel="import" href="harmony-bar.html">
+<!--
+`<harmony-editor>` is Description
+
+@element harmony-editor
+
+-->
 <dom-module id="harmony-editor">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-    <h2>Hello [[prop1]]!</h2>
-  </template>
+    <template>
+        <style>
+            :host {
+                font-family: Roboto;
+                background-color: white;
+                max-width: 600px;
+                margin: 10px auto;
+                box-shadow: 2px 2px 2px #c5c5c5;
+                display: grid;
+                -webkit-grid-template-rows: 100px auto 25px;
+                -webkit-grid-template-areas:
+                    "header"
+                    "content"
+                    "footer";
+                -webkit-justify-items: stretch;
+                align-items: stretch;
+            }
+            header{
+                -webkit-grid-area: "header"
+            }
+            content{
+                -webkit-grid-area: "content";
+                padding:5px;
+                min-height: 150px;
+            }
+            content::selection { 
+                background: #89b1f2; 
+            }
 
-  <script>
-    /**
-     * `harmony-editor`
-     * Rich text editor in polymer 2.0
-     *
-     * @customElement
-     * @polymer
-     * @demo demo/index.html
-     */
-    class HarmonyEditor extends Polymer.Element {
-      static get is() { return 'harmony-editor'; }
-      static get properties() {
-        return {
-          prop1: {
-            type: String,
-            value: 'harmony-editor'
-          }
-        };
-      }
-    }
+            footer{
+                -webkit-grid-area: "footer";
+                border-top: 1px solid #f6f6f6;
+            }
+        </style>
 
-    window.customElements.define(HarmonyEditor.is, HarmonyEditor);
-  </script>
+    <header>
+        <harmony-bar selected-text="{{selectedText}}" on-text-change="textChange"></harmony-bar>
+    </header>
+
+    <content id="cnt" contenteditable="true" inner-h-t-m-l="{{content}}">console.<strong>log()</strong>
+    </content>
+
+    <footer>
+    </footer>
+        
+
+    </template>
+
+    <script>
+        class HarmonyEditor extends Polymer.Element {
+
+            static get is() { return 'harmony-editor'; }
+
+            static get properties() {
+                return {
+                    selectedText: {
+                        type: Object
+                    }
+                };
+            }
+
+            textChange (e){
+                console.log(e)
+            }
+
+            textSelected (){
+                var sel = this.shadowRoot.getSelection().getRangeAt(0);
+                this.set('selectedText',sel);
+            }
+
+            ready(){
+                super.ready();
+                this.$.cnt.addEventListener('mouseup',()=>{
+                    this.textSelected();
+                });
+            }
+        }
+        window.customElements.define(HarmonyEditor.is, HarmonyEditor);
+    </script>
 </dom-module>

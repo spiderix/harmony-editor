@@ -1,0 +1,149 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="../bower_components/paper-swatch-picker/paper-swatch-picker.html">
+
+<!--
+`<harmony-bar>` is Description
+
+@element harmony
+-->
+<dom-module id="harmony-bar">
+    <template>
+        <style>
+            :host {
+                display: block;
+                /* border-bottom:1px solid grey; */
+                box-shadow: 0 1px 2px #e5e5e5;
+            }
+            .panel{
+                display: inline-block;
+                /* border-right: 1px solid grey; */
+            
+                --paper-icon-button: {
+                    padding: 10px;
+                }
+
+            }
+            .active{
+                color: #89b1f2
+            }
+        </style>
+
+        <div class="panel">
+            
+            <!-- <paper-icon-button  icon="editor:format-size"></paper-icon-button> -->
+        </div>
+        <div class="panel">
+            <paper-icon-button class="strong"  icon="editor:format-bold" on-tap="formatText" alt="bolds" data-open="<strong>" data-close="</strong>"></paper-icon-button>
+            <paper-icon-button class="i" icon="editor:format-italic" on-tap="formatText" data-open="<i>" data-close="</i>"></paper-icon-button>
+            <paper-icon-button class="u" icon="editor:format-underlined" on-tap="formatText" data-open="<u>" data-close="</u>"></paper-icon-button>
+            <paper-icon-button class="" icon="editor:format-strikethrough"></paper-icon-button>
+            <paper-icon-button class="" icon="editor:format-color-text"></paper-icon-button>
+            <paper-swatch-picker class="" ></paper-swatch-picker>
+        </div>
+        <!-- <div class="panel">
+            <paper-icon-button class="active" icon="editor:format-align-left"></paper-icon-button>
+            <paper-icon-button  icon="editor:format-align-center"></paper-icon-button>
+            <paper-icon-button  icon="editor:format-align-right"></paper-icon-button>
+            <paper-icon-button  icon="editor:format-align-justify"></paper-icon-button>
+        </div>
+
+        <div class="panel">
+            <paper-icon-button  icon="editor:format-list-bulleted"></paper-icon-button>
+            <paper-icon-button  icon="editor:format-list-numbered"></paper-icon-button>
+        </div> -->
+        <!-- <div class="panel">
+            <paper-icon-button  icon="editor:format-color-reset"></paper-icon-button>
+            <paper-icon-button  icon="editor:format-clear"></paper-icon-button>
+        </div> -->
+        
+
+    </template>
+
+    <script>
+        class harmonyBar extends Polymer.Element {
+
+            static get is() { return 'harmony-bar'; }
+
+            static get properties() {
+                return {
+                    selectedText: {
+                        type:Object,
+                        notify: true,
+                    }
+                };
+            }
+
+            static get observers() {
+                return [
+                    '_selected(selectedText.*)'
+                ]
+            }
+
+            _selected(){
+                //jezeli parent jest którys z nodow wtedy dodaj mu klase, jezeli nie wtedy usun klase
+                let node = this.selectedText.startContainer.parentElement || this.selectedText.startContainer;
+
+                if(node.nodeName != "CONTENT"){
+                    let active = this.shadowRoot.querySelector('.'+node.nodeName.toLowerCase());
+                    active.classList.add('active');
+                }else{
+                    let active = this.shadowRoot.querySelector('.active');
+                    if(active != null){
+                        active.classList.remove('active');
+                    }
+                }
+            }
+
+            formatText(item){
+                let open = item.currentTarget.dataset.open;
+                let close = item.currentTarget.dataset.close;
+
+                let node = this.selectedText.startContainer.parentElement ||            this.selectedText.startContainer;
+                let selectionCount = this.selectedText.endOffset - this.selectedText.startOffset;
+                let startOffset = this.selectedText.startOffset ;
+                let endOffset = this.selectedText.endOffset;
+               
+                if (node.nodeName == open.slice(1, -1).toUpperCase()) {
+                    if(selectionCount == 0){
+                        node.outerHTML = node.outerHTML.substring(8, this.selectedText.startContainer.length + 8);
+                    }else if( selectionCount == this.selectedText.startContainer.length){
+                        // jestem w <> i mam zaznaczony cały znacznik
+                        node.outerHTML = node.outerText;
+                    }else{
+                        //jezeli w zaznaczeniu znajduja się oba 
+                        console.log(this.selectedText.toString());
+
+                        // jestem w <> i mam zaznaczenie, odznaczam część stronga i dziele go na dwa
+                        node.outerHTML = [
+                            node.outerHTML.slice(0, startOffset + 8), 
+                            close, 
+                            node.outerHTML.slice(startOffset + 8, endOffset + 8),
+                            open,
+                            node.outerHTML.slice(endOffset + 8)
+                        ].join('');
+                    }
+                    //jestem w znaczniku, jezeli jest zaznaczone wtedy wstaw </>zaznaczenie<>
+                    //nie jest zaznaczenie => usuń <strong> w całym znaku?
+
+                    //startOffset daje informację o tym ile znaków w lewo jest  znacznik <>
+
+                }else{
+                    //jestem zwyklym tekstem, mam zaznaczenie dodaj do niego strong
+                    node.innerHTML = [
+                        node.innerHTML.slice(0, startOffset),
+                        open,
+                        node.innerHTML.slice(startOffset, endOffset),
+                        close,
+                        node.innerHTML.slice(endOffset)
+                    ].join('');
+                }
+
+                this.dispatchEvent(new CustomEvent('text-change', { detail: { text: true } }));
+            }
+        }
+
+        window.customElements.define(harmonyBar.is, harmonyBar);
+    </script>
+</dom-module>
