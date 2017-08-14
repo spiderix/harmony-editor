@@ -31,32 +31,34 @@
         </style>
 
         <div class="panel">
-            
-            <!-- <paper-icon-button  icon="editor:format-size"></paper-icon-button> -->
+             <!-- fontName -->
+            <paper-icon-button  icon="editor:format-size" on-tap="formatText" data-cmd="increaseFontSize"></paper-icon-button>
         </div>
         <div class="panel">
-            <paper-icon-button class="strong"  icon="editor:format-bold" on-tap="formatText" alt="bolds" data-open="<strong>" data-close="</strong>"></paper-icon-button>
-            <paper-icon-button class="i" icon="editor:format-italic" on-tap="formatText" data-open="<i>" data-close="</i>"></paper-icon-button>
-            <paper-icon-button class="u" icon="editor:format-underlined" on-tap="formatText" data-open="<u>" data-close="</u>"></paper-icon-button>
-            <paper-icon-button class="" icon="editor:format-strikethrough"></paper-icon-button>
-            <paper-icon-button class="" icon="editor:format-color-text"></paper-icon-button>
-            <paper-swatch-picker class="" ></paper-swatch-picker>
+            <paper-icon-button class="b"  icon="editor:format-bold" on-tap="formatText" alt="bolds" data-cmd="bold"></paper-icon-button>
+            <paper-icon-button class="i" icon="editor:format-italic" on-tap="formatText" data-cmd="italic"></paper-icon-button>
+            <paper-icon-button class="u" icon="editor:format-underlined" on-tap="formatText" data-cmd="underline"></paper-icon-button>
+            <paper-icon-button class="" icon="editor:format-strikethrough" on-tap="formatText" data-cmd="strikeThrough"></paper-icon-button>
+
+            <paper-icon-button class="" icon="editor:format-color-text" on-tap="formatText" data-cmd=""></paper-icon-button>
+            <paper-swatch-picker class="" on-tap="formatText" data-cmd="" color="{{color}}"></paper-swatch-picker>
         </div>
-        <!-- <div class="panel">
-            <paper-icon-button class="active" icon="editor:format-align-left"></paper-icon-button>
-            <paper-icon-button  icon="editor:format-align-center"></paper-icon-button>
-            <paper-icon-button  icon="editor:format-align-right"></paper-icon-button>
-            <paper-icon-button  icon="editor:format-align-justify"></paper-icon-button>
+        <div class="panel">
+            <paper-icon-button  icon="editor:format-align-left" on-tap="formatText" data-cmd="justifyLeft"></paper-icon-button>
+            <paper-icon-button  icon="editor:format-align-center" on-tap="formatText" data-cmd="justifyCenter"></paper-icon-button>
+            <paper-icon-button  icon="editor:format-align-right" on-tap="formatText" data-cmd="justifyRight"></paper-icon-button>
+            <paper-icon-button  icon="editor:format-align-justify" on-tap="formatText" data-cmd="justifyFull"></paper-icon-button>
         </div>
 
         <div class="panel">
-            <paper-icon-button  icon="editor:format-list-bulleted"></paper-icon-button>
-            <paper-icon-button  icon="editor:format-list-numbered"></paper-icon-button>
-        </div> -->
-        <!-- <div class="panel">
-            <paper-icon-button  icon="editor:format-color-reset"></paper-icon-button>
+            <paper-icon-button  icon="editor:format-list-bulleted" on-tap="formatText" data-cmd="insertUnorderedList"></paper-icon-button>
+            <paper-icon-button  icon="editor:format-list-numbered" on-tap="formatText" data-cmd="insertOrderedList"></paper-icon-button>
+        </div>
+        <div class="panel">
+            <paper-icon-button  icon="editor:insert-link" on-tap="createLink" data-cmd="createLink"></paper-icon-button>
+            <paper-icon-button hidden$="[[hasUpload]]" icon="editor:attach-file"></paper-icon-button>
             <paper-icon-button  icon="editor:format-clear"></paper-icon-button>
-        </div> -->
+        </div>
         
 
     </template>
@@ -71,6 +73,10 @@
                     selectedText: {
                         type:Object,
                         notify: true,
+                    },
+                    hasUpload: {
+                        type: String,
+                        observers: '_showUpload'
                     }
                 };
             }
@@ -81,66 +87,44 @@
                 ]
             }
 
-            _selected(){
-                //jezeli parent jest którys z nodow wtedy dodaj mu klase, jezeli nie wtedy usun klase
-                let node = this.selectedText.startContainer.parentElement || this.selectedText.startContainer;
-
-                if(node.nodeName != "CONTENT"){
-                    let active = this.shadowRoot.querySelector('.'+node.nodeName.toLowerCase());
-                    active.classList.add('active');
+            _showUpload(str){
+                if(str=""){
+                    this.showUpload = false;
                 }else{
-                    let active = this.shadowRoot.querySelector('.active');
-                    if(active != null){
-                        active.classList.remove('active');
-                    }
+                    this.showUpload = true;
                 }
             }
 
-            formatText(item){
-                let open = item.currentTarget.dataset.open;
-                let close = item.currentTarget.dataset.close;
-
-                let node = this.selectedText.startContainer.parentElement ||            this.selectedText.startContainer;
-                let selectionCount = this.selectedText.endOffset - this.selectedText.startOffset;
-                let startOffset = this.selectedText.startOffset ;
-                let endOffset = this.selectedText.endOffset;
-               
-                if (node.nodeName == open.slice(1, -1).toUpperCase()) {
-                    if(selectionCount == 0){
-                        node.outerHTML = node.outerHTML.substring(8, this.selectedText.startContainer.length + 8);
-                    }else if( selectionCount == this.selectedText.startContainer.length){
-                        // jestem w <> i mam zaznaczony cały znacznik
-                        node.outerHTML = node.outerText;
-                    }else{
-                        //jezeli w zaznaczeniu znajduja się oba 
-                        console.log(this.selectedText.toString());
-
-                        // jestem w <> i mam zaznaczenie, odznaczam część stronga i dziele go na dwa
-                        node.outerHTML = [
-                            node.outerHTML.slice(0, startOffset + 8), 
-                            close, 
-                            node.outerHTML.slice(startOffset + 8, endOffset + 8),
-                            open,
-                            node.outerHTML.slice(endOffset + 8)
-                        ].join('');
+            _selected(selected){
+                let el = selected.base.startContainer;
+                this.shadowRoot.querySelectorAll('.active').forEach((item)=>{
+                    item.classList.remove('active');
+                });
+                while(true){
+                    let elm = el.parentElement;
+                    if(elm == null){
+                        return;
                     }
-                    //jestem w znaczniku, jezeli jest zaznaczone wtedy wstaw </>zaznaczenie<>
-                    //nie jest zaznaczenie => usuń <strong> w całym znaku?
-
-                    //startOffset daje informację o tym ile znaków w lewo jest  znacznik <>
-
-                }else{
-                    //jestem zwyklym tekstem, mam zaznaczenie dodaj do niego strong
-                    node.innerHTML = [
-                        node.innerHTML.slice(0, startOffset),
-                        open,
-                        node.innerHTML.slice(startOffset, endOffset),
-                        close,
-                        node.innerHTML.slice(endOffset)
-                    ].join('');
+                    if (el.parentElement.nodeName == "P" || el.parentElement.nodeName == "CONTENT") {
+                        return;
+                    }
+                    let e = this.shadowRoot.querySelector('.'+ el.parentElement.nodeName.toLowerCase());
+                    if(e){
+                        e.classList.add('active');
+                    }
+                    el = elm;
                 }
+            }
 
-                this.dispatchEvent(new CustomEvent('text-change', { detail: { text: true } }));
+            createLink(){
+                //TODO: popup window with url
+
+                //this.formatText('createLink',url);
+            }
+
+            formatText(item,value=''){
+                document.execCommand(item.currentTarget.dataset.cmd, false, value);
+                this.dispatchEvent(new CustomEvent('text-change',{detail: {changed: true}}));
             }
         }
 

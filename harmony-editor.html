@@ -46,10 +46,10 @@
         </style>
 
     <header>
-        <harmony-bar selected-text="{{selectedText}}" on-text-change="textChange"></harmony-bar>
+        <harmony-bar selected-text="{{selectedText}}" on-text-change="textChange" hasUpload={{uploadContentUrl}}></harmony-bar>
     </header>
 
-    <content id="cnt" contenteditable="true" inner-h-t-m-l="{{content}}">console.<strong>log()</strong>
+    <content id="cnt" contenteditable="true" inner-h-t-m-l="{{content}}"><p></p>
     </content>
 
     <footer>
@@ -65,14 +65,23 @@
 
             static get properties() {
                 return {
+                    content:{
+                        type: Object,
+                        notify: true,
+                    },
+                    uploadContentUrl: {
+                        type: String,
+                        value: false
+                    },
                     selectedText: {
-                        type: Object
+                        type: Object,
                     }
                 };
             }
 
             textChange (e){
-                console.log(e)
+                this.$.cnt.focus();
+                this.textSelected();
             }
 
             textSelected (){
@@ -84,6 +93,13 @@
                 super.ready();
                 this.$.cnt.addEventListener('mouseup',()=>{
                     this.textSelected();
+                });
+
+                this.$.cnt.addEventListener('keydown',(e)=>{
+                    if(e.keyCode == 13){
+                        //TODO: adds handler after enter pressed -> insert <p> into content and watch if is selection ect.
+
+                    }
                 });
             }
         }
