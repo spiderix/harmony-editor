@@ -52,8 +52,8 @@
     <content id="cnt" contenteditable="true" inner-h-t-m-l="{{content}}">
     </content>
 
-    <footer>
-        [[footer]]
+    <footer hidden$="[[!footer]]">
+        [[footerText]]
     </footer>
         
 
@@ -67,7 +67,7 @@
             static get properties() {
                 return {
                     content:{
-                        type: Object,
+                        type: String,
                         notify: true,
                     },
                     uploadContentUrl: {
@@ -76,8 +76,36 @@
                     },
                     selectedText: {
                         type: Object,
+                    },
+                    footer:{
+                        type: Boolean,
+                        value: false
                     }
                 };
+            }
+
+            static get observers() {
+                return [
+                    '_changed(content.*)'
+                ]
+            }
+
+            _changed(text){
+                
+                // console.log(text);
+            }
+
+            _updateFooter(e){
+                if(e.parentElement == null) {
+                    this.footerText = '';
+                    return;
+                }
+                if(e.parentElement.nodeName != "CONTENT"){
+                    this.footerText = e.parentElement.nodeName + "." + this.footerText;
+                    return this._updateFooter(e.parentElement);
+                }else{
+                    return;
+                }
             }
 
             textChange (e){
@@ -86,27 +114,24 @@
             }
 
             textSelected (){
-                var sel = this.shadowRoot.getSelection().getRangeAt(0);
-                this.set('selectedText',sel);
+                this.selectedText = this.shadowRoot.getSelection().getRangeAt(0);
+                this.footerText = '';
+                this._updateFooter(this.selectedText.commonAncestorContainer);
             }
 
             ready(){
                 super.ready();
-                if (this.$.cnt.childElementCount == 0) {
-                    this.$.cnt.innerHTML = '<p><br></p>';
-                    this.footer = "p"
-                }
-
+                
                 this.$.cnt.addEventListener('mouseup',()=>{
                     this.textSelected();
                 });
 
                 this.$.cnt.addEventListener('keydown',(e)=>{
-                    if(e.keyCode == 13){
-                        //TODO: adds handler after enter pressed -> insert <p> into content and watch if is selection ect.
-
-                    }
-                    
+                    if (this.$.cnt.childElementCount == 0) {
+                        this.$.cnt.innerHTML = '<p><br></p>';
+                    }    
+                    this.content = this.$.cnt.innerHTML;
+                    this.textSelected();
                 });
             }
         }

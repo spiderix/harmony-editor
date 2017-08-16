@@ -31,6 +31,9 @@
             .active{
                 color: #89b1f2
             }
+            paper-dialog paper-icon-button{
+                color: black;
+            }
         </style>
 
         <div class="panel">
@@ -46,7 +49,7 @@
             <!-- <paper-swatch-picker class="" on-tap="formatText" data-cmd="" color="{{bgcolor}}"></paper-swatch-picker> -->
         </div>
         <div class="panel">
-            <paper-icon-button class="format-left active" icon="editor:format-align-left" on-tap="formatText" data-cmd="justifyLeft"></paper-icon-button>
+            <paper-icon-button class="format-left" icon="editor:format-align-left" on-tap="formatText" data-cmd="justifyLeft"></paper-icon-button>
             <paper-icon-button class="format-center" icon="editor:format-align-center" on-tap="formatText" data-cmd="justifyCenter"></paper-icon-button>
             <paper-icon-button class="format-right" icon="editor:format-align-right" on-tap="formatText" data-cmd="justifyRight"></paper-icon-button>
             <paper-icon-button class="format-just" icon="editor:format-align-justify" on-tap="formatText" data-cmd="justifyFull"></paper-icon-button>
@@ -57,14 +60,14 @@
             <paper-icon-button class="format-ol" icon="editor:format-list-numbered" on-tap="formatText" data-cmd="insertOrderedList"></paper-icon-button>
         </div>
         <div class="panel">
-            <paper-icon-button  icon="editor:insert-link" on-tap="_showUpload" data-cmd="createLink"></paper-icon-button>
+            <!-- <paper-icon-button class="format-url" icon="editor:insert-link" on-tap="_showUpload" data-cmd="createLink"></paper-icon-button> -->
             <!-- <paper-icon-button hidden$="[[!hasupload]]" icon="editor:attach-file" on-tap="_showUpload"></paper-icon-button> -->
         </div>
         
         <paper-dialog id="link" modal on-iron-overlay-closed="createLink">
             <paper-input always-float-label label="url" value="{{url}}"></paper-input>
-            <paper-icon-button icon="icons:close" dialog-dismiss></paper-icon-button>
-            <paper-icon-button icon="icons:check" dialog-confirm autofocus></paper-icon-button>
+            <paper-icon-button icon="icons:close" dialog-dismiss>x</paper-icon-button>
+            <paper-icon-button icon="icons:check" dialog-confirm autofocus>ok</paper-icon-button>
         </paper-dialog>
 
 
@@ -99,14 +102,14 @@
             }
 
             _selected(selected){
-                let el = selected.base.startContainer;
+                let el = selected.base.commonAncestorContainer;
+
                 this.shadowRoot.querySelectorAll('.active').forEach((item)=>{
                     item.classList.remove('active');
                 });
 
                 while(true){
                     let elm = el.parentElement;
-                    console.log(selected.base);
                     if(elm == null) return;
 
                     if( el.nodeName == "P" || el.nodeName == "DIV"){
