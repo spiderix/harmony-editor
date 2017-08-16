@@ -1,7 +1,10 @@
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../bower_components/iron-icons/editor-icons.html">
-<link rel="import" href="../bower_components/paper-swatch-picker/paper-swatch-picker.html">
+<link rel="import" href="bower_components/polymer/polymer-element.html">
+<link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/paper-swatch-picker/paper-swatch-picker.html">
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-input/paper-input.html">
 
 <!--
 `<harmony-bar>` is Description
@@ -32,34 +35,38 @@
 
         <div class="panel">
              <!-- fontName -->
-            <paper-icon-button  icon="editor:format-size" on-tap="formatText" data-cmd="increaseFontSize"></paper-icon-button>
+            <!-- <paper-icon-button  icon="editor:format-size" on-tap="formatText" data-cmd="increaseFontSize"></paper-icon-button> -->
         </div>
         <div class="panel">
             <paper-icon-button class="b"  icon="editor:format-bold" on-tap="formatText" alt="bolds" data-cmd="bold"></paper-icon-button>
             <paper-icon-button class="i" icon="editor:format-italic" on-tap="formatText" data-cmd="italic"></paper-icon-button>
             <paper-icon-button class="u" icon="editor:format-underlined" on-tap="formatText" data-cmd="underline"></paper-icon-button>
-            <paper-icon-button class="" icon="editor:format-strikethrough" on-tap="formatText" data-cmd="strikeThrough"></paper-icon-button>
+            <paper-icon-button class="strike" icon="editor:format-strikethrough" on-tap="formatText" data-cmd="strikeThrough"></paper-icon-button>
 
-            <paper-icon-button class="" icon="editor:format-color-text" on-tap="formatText" data-cmd=""></paper-icon-button>
-            <paper-swatch-picker class="" on-tap="formatText" data-cmd="" color="{{color}}"></paper-swatch-picker>
+            <!-- <paper-swatch-picker class="" on-tap="formatText" data-cmd="" color="{{bgcolor}}"></paper-swatch-picker> -->
         </div>
         <div class="panel">
-            <paper-icon-button  icon="editor:format-align-left" on-tap="formatText" data-cmd="justifyLeft"></paper-icon-button>
-            <paper-icon-button  icon="editor:format-align-center" on-tap="formatText" data-cmd="justifyCenter"></paper-icon-button>
-            <paper-icon-button  icon="editor:format-align-right" on-tap="formatText" data-cmd="justifyRight"></paper-icon-button>
-            <paper-icon-button  icon="editor:format-align-justify" on-tap="formatText" data-cmd="justifyFull"></paper-icon-button>
+            <paper-icon-button class="format-left active" icon="editor:format-align-left" on-tap="formatText" data-cmd="justifyLeft"></paper-icon-button>
+            <paper-icon-button class="format-center" icon="editor:format-align-center" on-tap="formatText" data-cmd="justifyCenter"></paper-icon-button>
+            <paper-icon-button class="format-right" icon="editor:format-align-right" on-tap="formatText" data-cmd="justifyRight"></paper-icon-button>
+            <paper-icon-button class="format-just" icon="editor:format-align-justify" on-tap="formatText" data-cmd="justifyFull"></paper-icon-button>
         </div>
 
         <div class="panel">
-            <paper-icon-button  icon="editor:format-list-bulleted" on-tap="formatText" data-cmd="insertUnorderedList"></paper-icon-button>
-            <paper-icon-button  icon="editor:format-list-numbered" on-tap="formatText" data-cmd="insertOrderedList"></paper-icon-button>
+            <paper-icon-button class="format-ul" icon="editor:format-list-bulleted" on-tap="formatText" data-cmd="insertUnorderedList"></paper-icon-button>
+            <paper-icon-button class="format-ol" icon="editor:format-list-numbered" on-tap="formatText" data-cmd="insertOrderedList"></paper-icon-button>
         </div>
         <div class="panel">
-            <paper-icon-button  icon="editor:insert-link" on-tap="createLink" data-cmd="createLink"></paper-icon-button>
-            <paper-icon-button hidden$="[[hasUpload]]" icon="editor:attach-file"></paper-icon-button>
-            <paper-icon-button  icon="editor:format-clear"></paper-icon-button>
+            <paper-icon-button  icon="editor:insert-link" on-tap="_showUpload" data-cmd="createLink"></paper-icon-button>
+            <!-- <paper-icon-button hidden$="[[!hasupload]]" icon="editor:attach-file" on-tap="_showUpload"></paper-icon-button> -->
         </div>
         
+        <paper-dialog id="link" modal on-iron-overlay-closed="createLink">
+            <paper-input always-float-label label="url" value="{{url}}"></paper-input>
+            <paper-icon-button icon="icons:close" dialog-dismiss></paper-icon-button>
+            <paper-icon-button icon="icons:check" dialog-confirm autofocus></paper-icon-button>
+        </paper-dialog>
+
 
     </template>
 
@@ -74,10 +81,10 @@
                         type:Object,
                         notify: true,
                     },
-                    hasUpload: {
+                    hasupload: {
                         type: String,
-                        observers: '_showUpload'
-                    }
+                    },
+                    url: String,
                 };
             }
 
@@ -88,11 +95,7 @@
             }
 
             _showUpload(str){
-                if(str=""){
-                    this.showUpload = false;
-                }else{
-                    this.showUpload = true;
-                }
+                this.$.link.open();
             }
 
             _selected(selected){
@@ -100,14 +103,34 @@
                 this.shadowRoot.querySelectorAll('.active').forEach((item)=>{
                     item.classList.remove('active');
                 });
+
                 while(true){
                     let elm = el.parentElement;
-                    if(elm == null){
-                        return;
+                    console.log(selected.base);
+                    if(elm == null) return;
+
+                    if( el.nodeName == "P" || el.nodeName == "DIV"){
+                        switch (el.style.textAlign) {
+                            case 'center':
+                                this.shadowRoot.querySelector('.format-center').classList.add('active');
+                                break;
+                            case 'right':
+                                this.shadowRoot.querySelector('.format-right').classList.add('active');
+                                break;
+                            default:
+                                this.shadowRoot.querySelector('.format-left').classList.add('active');
+                                break;
+                        }
                     }
-                    if (el.parentElement.nodeName == "P" || el.parentElement.nodeName == "CONTENT") {
-                        return;
+
+                    if(el.nodeName == "UL"){
+                        this.shadowRoot.querySelector('.format-ul').classList.add('active');
                     }
+
+                    if(el.nodeName == "OL"){
+                        this.shadowRoot.querySelector('.format-ol').classList.add('active');
+                    }
+                    
                     let e = this.shadowRoot.querySelector('.'+ el.parentElement.nodeName.toLowerCase());
                     if(e){
                         e.classList.add('active');
@@ -116,14 +139,16 @@
                 }
             }
 
-            createLink(){
-                //TODO: popup window with url
-
-                //this.formatText('createLink',url);
+            createLink(e){
+                if(e.detail.confirmed){
+                    this.formatText('createLink',this.url);
+                }
+                this.url = "";
             }
 
             formatText(item,value=''){
-                document.execCommand(item.currentTarget.dataset.cmd, false, value);
+                let cmd = (item === Object(item) ?item.currentTarget.dataset.cmd : item);
+                document.execCommand(cmd, false, value);
                 this.dispatchEvent(new CustomEvent('text-change',{detail: {changed: true}}));
             }
         }

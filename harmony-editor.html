@@ -1,4 +1,4 @@
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="bower_components/polymer/polymer-element.html">
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,300,300italic,400italic,500,500italic,700,700italic"
     crossorigin="anonymous">
 
@@ -49,10 +49,11 @@
         <harmony-bar selected-text="{{selectedText}}" on-text-change="textChange" hasUpload={{uploadContentUrl}}></harmony-bar>
     </header>
 
-    <content id="cnt" contenteditable="true" inner-h-t-m-l="{{content}}"><p></p>
+    <content id="cnt" contenteditable="true" inner-h-t-m-l="{{content}}">
     </content>
 
     <footer>
+        [[footer]]
     </footer>
         
 
@@ -91,6 +92,11 @@
 
             ready(){
                 super.ready();
+                if (this.$.cnt.childElementCount == 0) {
+                    this.$.cnt.innerHTML = '<p><br></p>';
+                    this.footer = "p"
+                }
+
                 this.$.cnt.addEventListener('mouseup',()=>{
                     this.textSelected();
                 });
@@ -100,6 +106,7 @@
                         //TODO: adds handler after enter pressed -> insert <p> into content and watch if is selection ect.
 
                     }
+                    
                 });
             }
         }
