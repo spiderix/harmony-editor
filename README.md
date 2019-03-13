@@ -5,6 +5,3 @@
 ```html
 <harmony-editor contetn="{{content}}" hasupload="[[api.upload.url]]" footer></harmony-editor>
 ```
-
-## Install the harmony-editor
-
